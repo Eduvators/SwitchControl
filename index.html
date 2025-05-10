@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switch Control Demo - Low Side vs High Side</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3 {
+            color: #3d8b95;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .circuit-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+            border-top: 5px solid #3d8b95;
+        }
+        .circuit {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .component {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .battery {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #000;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #3d8b95;
+            font-weight: bold;
+        }
+        .ground {
+            width: 30px;
+            height: 20px;
+        }
+        .ground:before {
+            content: "";
+            display: block;
+            width: 30px;
+            height: 2px;
+            background: #000;
+            margin-bottom: 3px;
+        }
+        .ground:after {
+            content: "";
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #000;
+            margin: 0 auto 3px;
+        }
+        .wire {
+            background: #000;
+            position: absolute;
+        }
+        .bulb {
+            width: 40px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .bulb-glass {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #000;
+            border-radius: 50%;
+            background-color: #ffffe0;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+        .bulb-on {
+            opacity: 1;
+            box-shadow: 0 0 10px 5px rgba(255, 255, 0, 0.5);
+        }
+        .bulb-base {
+            width: 20px;
+            height: 10px;
+            background-color: #333;
+            border: 1px solid #000;
+        }
+        .switch {
+            width: 60px;
+            height: 30px;
+            border: 2px solid #000;
+            position: relative;
+        }
+        .switch-lever {
+            width: 30px;
+            height: 2px;
+            background: #000;
+            position: absolute;
+            top: 50%;
+            transform-origin: left;
+            transition: transform 0.3s;
+        }
+        .open {
+            transform: rotate(-30deg);
+        }
+        .closed {
+            transform: rotate(0deg);
+        }
+        .control-module {
+            width: 80px;
+            height: 50px;
+            border: 2px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #3d8b95;
+            font-size: 0.8em;
+            text-align: center;
+            font-weight: bold;
+        }
+        .coil {
+            width: 60px;
+            height: 20px;
+            position: relative;
+        }
+        .coil:before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #000;
+        }
+        .coil:after {
+            content: "";
+            position: absolute;
+            top: 30%;
+            left: 5px;
+            right: 5px;
+            height: 10px;
+            border-top: 2px solid #000;
+            border-bottom: 2px solid #000;
+            background-image: repeating-linear-gradient(90deg, #000, #000 2px, transparent 2px, transparent 5px);
+        }
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #eaeaea;
+            border-radius: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            background: #3d8b95;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2d686f;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 5px;
+            border-left: 5px solid #3d8b95;
+        }
+        .tab-container {
+            display: flex;
+            flex-direction: column;
+            margin-top: 30px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            background: #ddd;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab-button.active {
+            background: #3d8b95;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .highlight {
+            background-color: #ffff99;
+        }
+    </style>
+</head>
+<body>
+    <h1>Common Electrical Components: Switch Control</h1>
+    <p>This interactive demo illustrates the difference between low side and high side switch control in electrical circuits. Explore how the control module interacts with each configuration and learn about these essential circuit components.</p>
+    
+    <div class="container">
+        <!-- Low Side Switch Circuit -->
+        <div class="circuit-container">
+            <h2>Low Side Switch Control</h2>
+            <p><strong style="color: #3d8b95;">Control Device Type 3:</strong> Controls circuit operation by regulating current flow.</p>
+            <div id="low-side-circuit" class="circuit">
+                <!-- Components will be drawn using JavaScript -->
+            </div>
+            <div class="control-panel">
+                <div>
+                    Control Module Output: <span id="low-side-signal" class="status" style="background-color: #ffcccc;">Logic "0" (OFF)</span>
+                </div>
+                <div>
+                    Bulb Status: <span id="low-side-status" class="status" style="background-color: #ffcccc;">OFF</span>
+                </div>
+                <button id="low-side-toggle">Toggle Control Signal</button>
+            </div>
+            <div class="explanation">
+                <p><strong>Low Side Switch:</strong> The switch is placed between the load (bulb) and ground. When the control module outputs a logic "0" (connects to ground), the circuit is complete and the bulb turns OFF. When it outputs a logic "1" (open circuit), the bulb turns ON.</p>
+            </div>
+        </div>
+        
+        <!-- High Side Switch Circuit -->
+        <div class="circuit-container">
+            <h2>High Side Switch Control</h2>
+            <p><strong style="color: #3d8b95;">Control Device Type 3:</strong> Controls circuit operation by regulating current flow.</p>
+            <div id="high-side-circuit" class="circuit">
+                <!-- Components will be drawn using JavaScript -->
+            </div>
+            <div class="control-panel">
+                <div>
+                    Control Module Output: <span id="high-side-signal" class="status" style="background-color: #ffcccc;">Logic "0" (OFF)</span>
+                </div>
+                <div>
+                    Bulb Status: <span id="high-side-status" class="status" style="background-color: #ffcccc;">OFF</span>
+                </div>
+                <button id="high-side-toggle">Toggle Control Signal</button>
+            </div>
+            <div class="explanation">
+                <p><strong>High Side Switch:</strong> The switch is placed between the power source and the load (bulb). When the control module outputs a logic "1" (connects to power), the circuit is complete and the bulb turns ON. When it outputs a logic "0" (open circuit), the bulb turns OFF.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-container">
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="openTab('comparison')">Comparison</button>
+            <button class="tab-button" onclick="openTab('applications')">Applications</button>
+            <button class="tab-button" onclick="openTab('advantages')">Advantages & Disadvantages</button>
+        </div>
+        
+        <div id="comparison" class="tab-content active">
+            <h3>Low Side vs High Side Switch Control Comparison</h3>
+            <p>Understanding how these control devices operate is crucial for proper circuit design and functionality:</p>
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>Low Side Switch</th>
+                    <th>High Side Switch</th>
+                </tr>
+                <tr>
+                    <td>Switch Location</td>
+                    <td>Between load and ground</td>
+                    <td>Between power source and load</td>
+                </tr>
+                <tr>
+                    <td>Activation Logic</td>
+                    <td>Logic "0" to activate (inverted)</td>
+                    <td>Logic "1" to activate (direct)</td>
+                </tr>
+                <tr>
+                    <td>Circuit Complexity</td>
+                    <td>Simpler</td>
+                    <td>More complex</td>
+                </tr>
+                <tr>
+                    <td>Cost</td>
+                    <td>Lower</td>
+                    <td>Higher</td>
+                </tr>
+                <tr>
+                    <td>Load Isolation</td>
+                    <td>Load always connected to power</td>
+                    <td>Load can be fully isolated</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div id="applications" class="tab-content">
+            <h3>Real-World Applications</h3>
+            <h4>Low Side Switch Applications:</h4>
+            <ul>
+                <li>Simple LED indicator circuits</li>
+                <li>Basic relay control</li>
+                <li>Automotive body electronics (basic lights, fans)</li>
+                <li>Power transistor control in simple circuits</li>
+                <li>Ground-referenced sensor circuits</li>
+            </ul>
+            
+            <h4>High Side Switch Applications:</h4>
+            <ul>
+                <li>Automotive safety-critical systems</li>
+                <li>Industrial control systems requiring load isolation</li>
+                <li>Power management circuits</li>
+                <li>Battery-powered devices with multiple subsystems</li>
+                <li>Circuits requiring protection against short circuits to ground</li>
+            </ul>
+        </div>
+        
+        <div id="advantages" class="tab-content">
+            <h3>Advantages & Disadvantages</h3>
+            
+            <h4>Low Side Switch:</h4>
+            <p><strong>Advantages:</strong></p>
+            <ul>
+                <li>Simpler implementation</li>
+                <li>Lower cost components (N-channel MOSFETs or NPN transistors are cheaper)</li>
+                <li>Easier to drive (doesn't require charge pump or bootstrap circuit)</li>
+                <li>Better performance with high current loads</li>
+            </ul>
+            <p><strong>Disadvantages:</strong></p>
+            <ul>
+                <li>Load terminal always at supply voltage (even when off)</li>
+                <li>Can create ground loops in systems with multiple switched loads</li>
+                <li>Not suitable when load must be completely isolated</li>
+                <li>Ground reference shifts can cause unwanted activation</li>
+            </ul>
+            
+            <h4>High Side Switch:</h4>
+            <p><strong>Advantages:</strong></p>
+            <ul>
+                <li>Completely isolates the load when off</li>
+                <li>Provides better protection against shorts to ground</li>
+                <li>Common ground can be maintained across the system</li>
+                <li>More intuitive control logic (ON = 1, OFF = 0)</li>
+            </ul>
+            <p><strong>Disadvantages:</strong></p>
+            <ul>
+                <li>More complex implementation</li>
+                <li>Higher cost (P-channel MOSFETs or special high-side driver ICs needed)</li>
+                <li>May require additional circuitry for proper driving</li>
+                <li>Sometimes less efficient</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Function to draw the low side circuit
+        function drawLowSideCircuit() {
+            const circuit = document.getElementById('low-side-circuit');
+            circuit.innerHTML = '';
+            
+            // Battery
+            const battery = document.createElement('div');
+            battery.className = 'component battery';
+            battery.style.left = '50px';
+            battery.style.top = '150px';
+            battery.textContent = '12V';
+            circuit.appendChild(battery);
+            
+            // Ground symbol for battery
+            const batteryGround = document.createElement('div');
+            batteryGround.className = 'component ground';
+            batteryGround.style.left = '50px';
+            batteryGround.style.top = '200px';
+            circuit.appendChild(batteryGround);
+            
+            // Wires
+            // Battery to bulb
+            const wire1 = document.createElement('div');
+            wire1.className = 'wire';
+            wire1.style.left = '110px';
+            wire1.style.top = '170px';
+            wire1.style.width = '180px';
+            wire1.style.height = '2px';
+            circuit.appendChild(wire1);
+            
+            // Vertical wire to bulb
+            const wire2 = document.createElement('div');
+            wire2.className = 'wire';
+            wire2.style.left = '290px';
+            wire2.style.top = '130px';
+            wire2.style.width = '2px';
+            wire2.style.height = '40px';
+            circuit.appendChild(wire2);
+            
+            // Bulb to switch
+            const wire3 = document.createElement('div');
+            wire3.className = 'wire';
+            wire3.style.left = '290px';
+            wire3.style.top = '190px';
+            wire3.style.width = '2px';
+            wire3.style.height = '40px';
+            circuit.appendChild(wire3);
+            
+            // Switch to control module
+            const wire4 = document.createElement('div');
+            wire4.className = 'wire';
+            wire4.style.left = '292px';
+            wire4.style.top = '250px';
+            wire4.style.width = '58px';
+            wire4.style.height = '2px';
+            circuit.appendChild(wire4);
+            
+            // Control module to ground
+            const wire5 = document.createElement('div');
+            wire5.className = 'wire';
+            wire5.style.left = '390px';
+            wire5.style.top = '250px';
+            wire5.style.width = '2px';
+            wire5.style.height = '30px';
+            circuit.appendChild(wire5);
+            
+            // Light bulb
+            const bulb = document.createElement('div');
+            bulb.className = 'component bulb';
+            bulb.style.left = '270px';
+            bulb.style.top = '90px';
+            
+            const bulbGlass = document.createElement('div');
+            bulbGlass.className = 'bulb-glass';
+            bulbGlass.id = 'low-side-bulb';
+            
+            const bulbBase = document.createElement('div');
+            bulbBase.className = 'bulb-base';
+            
+            bulb.appendChild(bulbGlass);
+            bulb.appendChild(bulbBase);
+            circuit.appendChild(bulb);
+            
+            // Switch (between bulb and ground)
+            const switchComp = document.createElement('div');
+            switchComp.className = 'component switch';
+            switchComp.style.left = '260px';
+            switchComp.style.top = '230px';
+            
+            const switchLever = document.createElement('div');
+            switchLever.className = 'switch-lever open';
+            switchLever.id = 'low-side-switch';
+            
+            switchComp.appendChild(switchLever);
+            circuit.appendChild(switchComp);
+            
+            // Control module
+            const controlModule = document.createElement('div');
+            controlModule.className = 'component control-module';
+            controlModule.style.left = '350px';
+            controlModule.style.top = '220px';
+            controlModule.textContent = 'Control Module';
+            circuit.appendChild(controlModule);
+            
+            // Ground for control module
+            const controlGround = document.createElement('div');
+            controlGround.className = 'component ground';
+            controlGround.style.left = '375px';
+            controlGround.style.top = '290px';
+            circuit.appendChild(controlGround);
+        }
+        
+        // Function to draw the high side circuit
+        function drawHighSideCircuit() {
+            const circuit = document.getElementById('high-side-circuit');
+            circuit.innerHTML = '';
+            
+            // Battery
+            const battery = document.createElement('div');
+            battery.className = 'component battery';
+            battery.style.left = '50px';
+            battery.style.top = '150px';
+            battery.textContent = '12V';
+            circuit.appendChild(battery);
+            
+            // Ground symbol for battery
+            const batteryGround = document.createElement('div');
+            batteryGround.className = 'component ground';
+            batteryGround.style.left = '50px';
+            batteryGround.style.top = '200px';
+            circuit.appendChild(batteryGround);
+            
+            // Wires
+            // Battery to switch
+            const wire1 = document.createElement('div');
+            wire1.className = 'wire';
+            wire1.style.left = '110px';
+            wire1.style.top = '170px';
+            wire1.style.width = '100px';
+            wire1.style.height = '2px';
+            circuit.appendChild(wire1);
+            
+            // Switch to bulb
+            const wire2 = document.createElement('div');
+            wire2.className = 'wire';
+            wire2.style.left = '250px';
+            wire2.style.top = '170px';
+            wire2.style.width = '40px';
+            wire2.style.height = '2px';
+            circuit.appendChild(wire2);
+            
+            // Vertical wire to bulb
+            const wire3 = document.createElement('div');
+            wire3.className = 'wire';
+            wire3.style.left = '290px';
+            wire3.style.top = '130px';
+            wire3.style.width = '2px';
+            wire3.style.height = '40px';
+            circuit.appendChild(wire3);
+            
+            // Bulb to ground
+            const wire4 = document.createElement('div');
+            wire4.className = 'wire';
+            wire4.style.left = '290px';
+            wire4.style.top = '190px';
+            wire4.style.width = '2px';
+            wire4.style.height = '90px';
+            circuit.appendChild(wire4);
+            
+            // Control module to switch
+            const wire5 = document.createElement('div');
+            wire5.className = 'wire';
+            wire5.style.left = '210px';
+            wire5.style.top = '200px';
+            wire5.style.width = '2px';
+            wire5.style.height = '30px';
+            circuit.appendChild(wire5);
+            
+            // Light bulb
+            const bulb = document.createElement('div');
+            bulb.className = 'component bulb';
+            bulb.style.left = '270px';
+            bulb.style.top = '90px';
+            
+            const bulbGlass = document.createElement('div');
+            bulbGlass.className = 'bulb-glass';
+            bulbGlass.id = 'high-side-bulb';
+            
+            const bulbBase = document.createElement('div');
+            bulbBase.className = 'bulb-base';
+            
+            bulb.appendChild(bulbGlass);
+            bulb.appendChild(bulbBase);
+            circuit.appendChild(bulb);
+            
+            // Switch (between battery and bulb)
+            const switchComp = document.createElement('div');
+            switchComp.className = 'component switch';
+            switchComp.style.left = '190px';
+            switchComp.style.top = '170px';
+            
+            const switchLever = document.createElement('div');
+            switchLever.className = 'switch-lever open';
+            switchLever.id = 'high-side-switch';
+            
+            switchComp.appendChild(switchLever);
+            circuit.appendChild(switchComp);
+            
+            // Control module
+            const controlModule = document.createElement('div');
+            controlModule.className = 'component control-module';
+            controlModule.style.left = '170px';
+            controlModule.style.top = '240px';
+            controlModule.textContent = 'Control Module';
+            circuit.appendChild(controlModule);
+            
+            // Ground for bulb
+            const bulbGround = document.createElement('div');
+            bulbGround.className = 'component ground';
+            bulbGround.style.left = '290px';
+            bulbGround.style.top = '290px';
+            circuit.appendChild(bulbGround);
+            
+            // Ground for control module
+            const controlGround = document.createElement('div');
+            controlGround.className = 'component ground';
+            controlGround.style.left = '350px';
+            controlGround.style.top = '250px';
+            circuit.appendChild(controlGround);
+        }
+        
+        // Function to toggle the low side switch
+        function toggleLowSide() {
+            const bulb = document.getElementById('low-side-bulb');
+            const switchLever = document.getElementById('low-side-switch');
+            const signal = document.getElementById('low-side-signal');
+            const status = document.getElementById('low-side-status');
+            
+            if (switchLever.classList.contains('open')) {
+                // Close the switch
+                switchLever.classList.remove('open');
+                switchLever.classList.add('closed');
+                signal.textContent = 'Logic "0" (ON)';
+                signal.style.backgroundColor = '#ccffcc';
+                status.textContent = 'ON';
+                status.style.backgroundColor = '#ccffcc';
+                bulb.classList.add('bulb-on');
+            } else {
+                // Open the switch
+                switchLever.classList.remove('closed');
+                switchLever.classList.add('open');
+                signal.textContent = 'Logic "1" (OFF)';
+                signal.style.backgroundColor = '#ffcccc';
+                status.textContent = 'OFF';
+                status.style.backgroundColor = '#ffcccc';
+                bulb.classList.remove('bulb-on');
+            }
+        }
+        
+        // Function to toggle the high side switch
+        function toggleHighSide() {
+            const bulb = document.getElementById('high-side-bulb');
+            const switchLever = document.getElementById('high-side-switch');
+            const signal = document.getElementById('high-side-signal');
+            const status = document.getElementById('high-side-status');
+            
+            if (switchLever.classList.contains('open')) {
+                // Close the switch
+                switchLever.classList.remove('open');
+                switchLever.classList.add('closed');
+                signal.textContent = 'Logic "1" (ON)';
+                signal.style.backgroundColor = '#ccffcc';
+                status.textContent = 'ON';
+                status.style.backgroundColor = '#ccffcc';
+                bulb.classList.add('bulb-on');
+            } else {
+                // Open the switch
+                switchLever.classList.remove('closed');
+                switchLever.classList.add('open');
+                signal.textContent = 'Logic "0" (OFF)';
+                signal.style.backgroundColor = '#ffcccc';
+                status.textContent = 'OFF';
+                status.style.backgroundColor = '#ffcccc';
+                bulb.classList.remove('bulb-on');
+            }
+        }
+        
+        // Function to open tabs
+        function openTab(tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
+        // Initialize the circuits when the page loads
+        window.onload = function() {
+            drawLowSideCircuit();
+            drawHighSideCircuit();
+            
+            // Add event listeners for the toggle buttons
+            document.getElementById('low-side-toggle').addEventListener('click', toggleLowSide);
+            document.getElementById('high-side-toggle').addEventListener('click', toggleHighSide);
+        };
+    </script>
+</body>
+</html>
